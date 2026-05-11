@@ -25,7 +25,7 @@ const Header = () => {
         ] : []),
 
         {
-            label: 'Welcome ${auth?.user?.email ?? "Guest"}',
+            label: `Welcome ${auth?.user?.email ?? "Guest"}`,
             key: 'SubMenu',
             icon: <SettingOutlined />,
             children: [

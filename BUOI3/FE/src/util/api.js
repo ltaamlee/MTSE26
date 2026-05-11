@@ -1,5 +1,5 @@
 import Password from "antd/es/input/Password";
-import axios from "axios";
+import axios from './axios.customize';
 
 const createUserApi = (name, email, assword) => {
     const URL_API = "/v1/api/register";
@@ -21,7 +21,7 @@ const loginApi = (email, password) => {
 }
 
 const getUserApi = () => {
-    const URL_API = "v1/api/user";
+    const URL_API = "/v1/api/user";
     return axios.get(URL_API);
 }
 

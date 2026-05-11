@@ -32,7 +32,7 @@ const LoginPage = () => {
             notification.error({
                 message: "LOGIN USER",
                 description: res?.EM ?? "error"
-            })
+            });
         }
     };
 
