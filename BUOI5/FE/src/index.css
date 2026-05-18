@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Noto+Serif:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #fef2f2;
+  --color-primary-100: #fee2e2;
+  --color-primary-200: #fecaca;
+  --color-primary-300: #fca5a5;
+  --color-primary-400: #f87171;
+  --color-primary-500: #ef4444;
+  --color-primary-600: #dc2626;
+  --color-primary-700: #b91c1c;
+  --color-primary-800: #991b1b;
+  --color-primary-900: #7f1d1d;
+
+  --color-secondary-50: #faf5ff;
+  --color-secondary-100: #f3e8ff;
+  --color-secondary-200: #e9d5ff;
+  --color-secondary-300: #d8b4fe;
+  --color-secondary-400: #c084fc;
+  --color-secondary-500: #a855f7;
+  --color-secondary-600: #9333ea;
+  --color-secondary-700: #7c3aed;
+  --color-secondary-800: #6b21a8;
+  --color-secondary-900: #581c87;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Noto Serif', serif;
+    @apply text-gray-800 antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium text-white transition-all duration-300;
+    @apply bg-gradient-to-r from-primary-600 to-primary-700;
+    @apply hover:from-primary-700 hover:to-primary-800;
+    @apply hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium text-white transition-all duration-300;
+    @apply bg-gradient-to-r from-secondary-600 to-secondary-700;
+    @apply hover:from-secondary-700 hover:to-secondary-800;
+    @apply hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
+  .btn-outline {
+    @apply rounded-lg border-2 border-primary-600 px-6 py-2 font-medium text-primary-600 transition-all duration-300;
+    @apply hover:bg-primary-600 hover:text-white;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    @apply mb-8 text-center text-3xl font-bold text-gray-900 md:text-4xl;
+  }
+
+  .badge-sale {
+    @apply absolute top-3 left-3 rounded-full bg-red-500 px-3 py-1 text-sm font-semibold text-white;
+  }
+
+  .badge-new {
+    @apply absolute top-3 left-3 rounded-full bg-green-500 px-3 py-1 text-sm font-semibold text-white;
+  }
+
+  .badge-hot {
+    @apply absolute top-3 left-3 rounded-full bg-orange-500 px-3 py-1 text-sm font-semibold text-white;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition-all duration-300;
+    @apply focus:border-transparent focus:ring-2 focus:ring-primary-500;
+  }
+
+  .glass-effect {
+    @apply bg-white/80 shadow-lg backdrop-blur-md;
+  }
+}
+
+/* Swiper */
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  text-align: center;
+}
+
+.swiper-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.swiper-pagination-bullet-active {
+  background: #dc2626 !important;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: #dc2626 !important;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}

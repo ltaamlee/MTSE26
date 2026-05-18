@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 
@@ -56,7 +57,7 @@ const products = [
     sold: 89,
     rating: 4.8,
     isFeatured: true,
-    isNew: false,
+    isNewProduct: false,
     isHot: true,
     specifications: [
       { name: 'Loại', value: 'Bút lông' },
@@ -83,7 +84,7 @@ const products = [
     sold: 45,
     rating: 4.6,
     isFeatured: true,
-    isNew: true,
+    isNewProduct: true,
     isHot: false,
     specifications: [
       { name: 'Số lượng', value: '5 bút' },
@@ -109,7 +110,7 @@ const products = [
     sold: 120,
     rating: 4.9,
     isFeatured: true,
-    isNew: false,
+    isNewProduct: false,
     isHot: true,
     specifications: [
       { name: 'Số lượng', value: '12 chai' },
@@ -135,7 +136,7 @@ const products = [
     sold: 67,
     rating: 4.7,
     isFeatured: false,
-    isNew: true,
+    isNewProduct: true,
     isHot: false,
     specifications: [
       { name: 'Dung tích', value: '45ml' },
@@ -162,7 +163,7 @@ const products = [
     sold: 180,
     rating: 4.8,
     isFeatured: true,
-    isNew: false,
+    isNewProduct: false,
     isHot: true,
     specifications: [
       { name: 'Số lượng', value: '20 tờ' },
@@ -188,7 +189,7 @@ const products = [
     sold: 95,
     rating: 4.9,
     isFeatured: false,
-    isNew: true,
+    isNewProduct: true,
     isHot: false,
     specifications: [
       { name: 'Số lượng', value: '30 tờ' },
@@ -215,7 +216,7 @@ const products = [
     sold: 28,
     rating: 4.7,
     isFeatured: true,
-    isNew: false,
+    isNewProduct: false,
     isHot: true,
     specifications: [
       { name: 'Chất liệu', value: 'Đồng hợp kim' },
@@ -241,7 +242,7 @@ const products = [
     sold: 42,
     rating: 4.5,
     isFeatured: false,
-    isNew: true,
+    isNewProduct: true,
     isHot: false,
     specifications: [
       { name: 'Chất liệu', value: 'Sứ cao cấp' },
@@ -268,7 +269,7 @@ const products = [
     sold: 38,
     rating: 4.8,
     isFeatured: true,
-    isNew: false,
+    isNewProduct: false,
     isHot: true,
     specifications: [
       { name: 'Độ rộng đầu', value: '2.4mm' },
@@ -294,7 +295,7 @@ const products = [
     sold: 35,
     rating: 4.9,
     isFeatured: false,
-    isNew: true,
+    isNewProduct: true,
     isHot: false,
     specifications: [
       { name: 'Dung tích', value: '30ml' },
@@ -320,7 +321,7 @@ const products = [
     sold: 68,
     rating: 4.6,
     isFeatured: false,
-    isNew: false,
+    isNewProduct: false,
     isHot: true,
     specifications: [
       { name: 'Số lượng', value: '100 tờ' },
@@ -347,7 +348,7 @@ const products = [
     sold: 15,
     rating: 4.9,
     isFeatured: true,
-    isNew: false,
+    isNewProduct: false,
     isHot: false,
     specifications: [
       { name: 'Số lượng', value: '4 nghiên' },
@@ -360,6 +361,11 @@ const products = [
 
 const seedDatabase = async () => {
   try {
+    // Kết nối database nếu chưa kết nối
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/minhtamduong');
+    }
+
     await Category.deleteMany({});
     await Product.deleteMany({});
 
@@ -377,3 +383,15 @@ const seedDatabase = async () => {
 };
 
 module.exports = seedDatabase;
+
+require('dotenv').config();
+
+seedDatabase()
+  .then(() => {
+    console.log('Seed completed!');
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error('Seed failed:', err);
+    process.exit(1);
+  });
