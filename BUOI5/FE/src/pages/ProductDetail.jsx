@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Thumbs, FreeMode } from 'swiper/modules';
 import 'swiper/css';
@@ -10,14 +12,21 @@ import { productAPI } from '../services/api';
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
+  
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
 
   useEffect(() => {
     fetchProduct();
+    setQuantity(1);
   }, [id]);
 
   const fetchProduct = async () => {
@@ -48,6 +57,62 @@ const ProductDetail = () => {
       setQuantity((prev) => (prev < product?.stock ? prev + 1 : prev));
     } else {
       setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!user) {
+      if (window.confirm('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Đăng nhập ngay?')) {
+        navigate('/login');
+      }
+      return;
+    }
+
+    if (product.stock === 0) {
+      alert('Sản phẩm đã hết hàng!');
+      return;
+    }
+
+    setAddingToCart(true);
+    try {
+      const result = await addToCart(product._id, quantity);
+      if (result.success) {
+        alert('Đã thêm sản phẩm vào giỏ hàng!');
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      if (window.confirm('Bạn cần đăng nhập để mua hàng. Đăng nhập ngay?')) {
+        navigate('/login');
+      }
+      return;
+    }
+
+    if (product.stock === 0) {
+      alert('Sản phẩm đã hết hàng!');
+      return;
+    }
+
+    setBuyingNow(true);
+    try {
+      const result = await addToCart(product._id, quantity);
+      if (result.success) {
+        navigate('/checkout');
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra');
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -199,7 +264,7 @@ const ProductDetail = () => {
                 <div className="flex items-center gap-2 mb-3">
                   {product.stock > 0 ? (
                     <>
-                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
                       <span className="text-green-600 font-medium">Còn hàng</span>
                       <span className="text-gray-500">({product.stock} sản phẩm)</span>
                     </>
@@ -211,8 +276,11 @@ const ProductDetail = () => {
                   )}
                 </div>
                 {product.stock > 0 && product.stock <= 10 && (
-                  <p className="text-orange-500 text-sm">
-                    ⚠️ Chỉ còn {product.stock} sản phẩm! Hãy đặt hàng sớm.
+                  <p className="text-orange-500 text-sm flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Chỉ còn {product.stock} sản phẩm! Hãy đặt hàng sớm.
                   </p>
                 )}
               </div>
@@ -222,59 +290,93 @@ const ProductDetail = () => {
               </div>
 
               {/* Quantity Selector */}
-              <div className="mb-6">
-                <label className="block text-gray-700 font-medium mb-2">Số lượng:</label>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
-                    <button
-                      onClick={() => handleQuantityChange('decrease')}
-                      className="px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary-600 transition-colors disabled:opacity-50"
-                      disabled={quantity <= 1}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                      </svg>
-                    </button>
-                    <input
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (val > 0 && val <= product.stock) {
-                          setQuantity(val);
-                        }
-                      }}
-                      className="w-16 text-center font-semibold border-x-2 border-gray-200 py-3 focus:outline-none"
-                    />
-                    <button
-                      onClick={() => handleQuantityChange('increase')}
-                      className="px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary-600 transition-colors disabled:opacity-50"
-                      disabled={quantity >= product.stock}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
+              {product.stock > 0 && (
+                <div className="mb-6">
+                  <label className="block text-gray-700 font-medium mb-2">Số lượng:</label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => handleQuantityChange('decrease')}
+                        className="px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary-600 transition-colors disabled:opacity-50"
+                        disabled={quantity <= 1}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                      </button>
+                      <input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (val > 0 && val <= product.stock) {
+                            setQuantity(val);
+                          }
+                        }}
+                        className="w-16 text-center font-semibold border-x-2 border-gray-200 py-3 focus:outline-none"
+                      />
+                      <button
+                        onClick={() => handleQuantityChange('increase')}
+                        className="px-4 py-3 text-gray-600 hover:bg-gray-100 hover:text-primary-600 transition-colors disabled:opacity-50"
+                        disabled={quantity >= product.stock}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
+                    <span className="text-gray-500 text-sm">
+                      Tổng: <span className="font-bold text-primary-600">{formatPrice(product.price * quantity)}</span>
+                    </span>
                   </div>
-                  <span className="text-gray-500 text-sm">
-                    Tổng: <span className="font-bold text-primary-600">{formatPrice(product.price * quantity)}</span>
-                  </span>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="flex-1 bg-linear-to-r from-primary-600 to-primary-700 text-white py-4 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Thêm vào giỏ hàng
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart || product.stock === 0}
+                  className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {addingToCart ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Đang thêm...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      {product.stock === 0 ? 'Hết hàng' : 'Thêm vào giỏ hàng'}
+                    </>
+                  )}
                 </button>
-                <button className="flex-1 bg-linear-to-r from-secondary-600 to-secondary-700 text-white py-4 rounded-xl font-semibold hover:from-secondary-700 hover:to-secondary-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Mua ngay
+                <button
+                  onClick={handleBuyNow}
+                  disabled={buyingNow || product.stock === 0}
+                  className="flex-1 bg-gradient-to-r from-secondary-600 to-secondary-700 text-white py-4 rounded-xl font-semibold hover:from-secondary-700 hover:to-secondary-800 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {buyingNow ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Mua ngay
+                    </>
+                  )}
                 </button>
               </div>
 

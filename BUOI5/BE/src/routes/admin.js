@@ -3,6 +3,7 @@ const router = express.Router();
 const { isAdmin } = require('../middleware/adminAuth');
 const adminProductController = require('../controllers/adminProductController');
 const adminCategoryController = require('../controllers/adminCategoryController');
+const adminOrderController = require('../controllers/adminOrderController');
 
 // ========== ADMIN PRODUCTS ==========
 
@@ -43,5 +44,19 @@ router.delete('/categories/:id', isAdmin, adminCategoryController.deleteCategory
 
 // PATCH /api/admin/categories/:id/toggle - Toggle trạng thái
 router.patch('/categories/:id/toggle', isAdmin, adminCategoryController.toggleCategoryStatus);
+
+// ========== ADMIN ORDERS ==========
+
+// GET /api/admin/orders - Lấy danh sách đơn hàng
+router.get('/orders', isAdmin, adminOrderController.getAllOrders);
+
+// GET /api/admin/orders/stats - Thống kê đơn hàng
+router.get('/orders/stats', isAdmin, adminOrderController.getOrderStats);
+
+// GET /api/admin/orders/:orderId - Lấy chi tiết đơn hàng
+router.get('/orders/:orderId', isAdmin, adminOrderController.getOrderById);
+
+// PATCH /api/admin/orders/:orderId/status - Cập nhật trạng thái đơn hàng
+router.patch('/orders/:orderId/status', isAdmin, adminOrderController.updateStatus);
 
 module.exports = router;

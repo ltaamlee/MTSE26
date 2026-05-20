@@ -1,12 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { cart, fetchCart } = useCart();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchCart();
+    }
+  }, [user, fetchCart]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -30,7 +38,7 @@ const Header = () => {
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="bg-linear-to-r from-primary-700 to-primary-800 text-white py-2">
+      <div className="bg-gradient-to-r from-primary-700 to-primary-800 text-white py-2">
         <div className="container mx-auto px-4 flex justify-between items-center text-sm">
           <span>Miễn phí vận chuyển cho đơn hàng từ 500.000đ</span>
           <span>Hotline: 0901.234.567</span>
@@ -40,8 +48,8 @@ const Header = () => {
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-12 h-12 bg-linear-to-br from-primary-600 to-secondary-700 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-xl">logo</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-secondary-700 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-xl">M</span>
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -76,13 +84,17 @@ const Header = () => {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+              {cart.totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+                  {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                </span>
+              )}
             </Link>
 
             {user ? (
               <div className="relative group">
                 <button className="flex items-center space-x-2 p-2 text-gray-600 hover:text-primary-600 transition-colors">
-                  <div className="w-8 h-8 bg-linear-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">
                       {user.name?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
@@ -93,25 +105,42 @@ const Header = () => {
                   <div className="p-3 border-b">
                     <p className="font-medium text-gray-900">{user.name}</p>
                     <p className="text-sm text-gray-500">{user.email}</p>
+                    {user.role === 'admin' && (
+                      <span className="inline-block mt-1 px-2 py-0.5 bg-primary-100 text-primary-700 text-xs rounded">Admin</span>
+                    )}
                   </div>
-                  <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
-                    Tài khoản của tôi
-                  </Link>
-                  <Link to="/my-orders" className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
-                    Đơn hàng của tôi
-                  </Link>
+                  {user.role !== 'admin' && (
+                    <>
+                      <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                        Tài khoản của tôi
+                      </Link>
+                      <Link to="/my-orders" className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                        Đơn hàng của tôi
+                      </Link>
+                    </>
+                  )}
+                  {user.role === 'admin' && (
+                    <Link to="/admin" className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors">
+                      Quản lý cửa hàng
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                   >
                     Đăng xuất
                   </button>
                 </div>
               </div>
             ) : (
-              <Link to="/login" className="btn-primary text-sm">
-                Đăng nhập
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link to="/login" className="px-4 py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  Đăng nhập
+                </Link>
+                <Link to="/register" className="btn-primary text-sm">
+                  Đăng ký
+                </Link>
+              </div>
             )}
           </div>
         </div>

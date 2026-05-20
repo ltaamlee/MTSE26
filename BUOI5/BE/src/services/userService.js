@@ -9,9 +9,10 @@ const createUserService = async (name, email, password) => {
     try {
         const user = await User.findOne({email});
         if (user) {
-            return res.status(400).json({
-                message: "Email already exists"
-            });
+            return {
+                EC: 1,
+                EM: "Email already exists"
+            };
         }
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         
@@ -21,11 +22,22 @@ const createUserService = async (name, email, password) => {
             password: hashedPassword,
             role: 'user'
         });
-        return result;
+        return {
+            EC: 0,
+            EM: "User created successfully",
+            user: {
+                _id: result._id,
+                username: result.username,
+                email: result.email
+            }
+        };
     }
     catch (error) {
         console.log(error);
-        return null;
+        return {
+            EC: -1,
+            EM: "Error creating user"
+        };
     }}
 
 const loginService = async (email1, password) => { 
@@ -41,8 +53,10 @@ const loginService = async (email1, password) => {
             }
             else{
                 const payload = {
+                    userId: user._id,
                     email: user.email,
                     name: user.username,
+                    role: user.role
                 }
 
                 const access_token = jwt.sign(
@@ -55,8 +69,10 @@ const loginService = async (email1, password) => {
                     EM: "Login successful",
                     access_token,
                     user: {
+                        _id: user._id,
                         email: user.email,
                         name: user.username,
+                        role: user.role
                     }
                 }
             }

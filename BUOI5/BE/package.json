@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon ./src/server.js",
     "start": "nodemon ./src/server.js",
-    "seed": "node src/seeds/seedData.js"
+    "seed": "node src/seeds/seedData.js",
+    "seed:admin": "node src/seedAdmin.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

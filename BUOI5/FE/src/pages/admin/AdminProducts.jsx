@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminProductAPI, categoryAPI } from '../../services/api';
-import { Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight, X, Loader2 } from 'lucide-react';
+import ProductFormModal from './ProductFormModal';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -83,6 +84,26 @@ const AdminProducts = () => {
     }
   };
 
+  const handleOpenCreate = () => {
+    setEditingProduct(null);
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (product) => {
+    setEditingProduct(product);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingProduct(null);
+  };
+
+  const handleSuccess = () => {
+    handleCloseModal();
+    fetchProducts(pagination.page);
+  };
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
   };
@@ -91,13 +112,14 @@ const AdminProducts = () => {
     <div>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <Link
-          to="/admin/products/new"
+        <h1 className="text-2xl font-bold text-gray-900">Quản lý sản phẩm</h1>
+        <button
+          onClick={handleOpenCreate}
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Thêm sản phẩm
-        </Link>
+        </button>
       </div>
 
       {/* Filters */}
@@ -245,13 +267,13 @@ const AdminProducts = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <Link
-                          to={`/admin/products/${product._id}`}
+                        <button
+                          onClick={() => handleOpenEdit(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Sửa"
                         >
                           <Edit2 className="w-4 h-4" />
-                        </Link>
+                        </button>
                         <button
                           onClick={() => handleToggleStatus(product._id)}
                           className={`p-2 rounded-lg transition-colors ${
@@ -321,6 +343,16 @@ const AdminProducts = () => {
           </div>
         )}
       </div>
+
+      {/* Product Form Modal */}
+      {showModal && (
+        <ProductFormModal
+          product={editingProduct}
+          categories={categories}
+          onClose={handleCloseModal}
+          onSuccess={handleSuccess}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (

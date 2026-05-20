@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -10,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    
+
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
     }
@@ -19,36 +18,59 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await authAPI.login({ email, password });
-      const { token, user: userData } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      
-      return { success: true, user: userData };
+      const response = await fetch('http://localhost:8080/v1/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        return { success: true, user: data.user };
+      } else {
+        return {
+          success: false,
+          message: data.message || 'Đăng nhập thất bại'
+        };
+      }
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Đăng nhập thất bại' 
+      return {
+        success: false,
+        message: 'Lỗi kết nối server'
       };
     }
   };
 
-  const register = async (data) => {
+  const register = async (name, email, password) => {
     try {
-      const response = await authAPI.register(data);
-      const { token, user: userData } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      
-      return { success: true, user: userData };
+      const response = await fetch('http://localhost:8080/v1/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        return { success: true, user: data.data };
+      } else {
+        return {
+          success: false,
+          message: data.message || 'Đăng ký thất bại'
+        };
+      }
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Đăng ký thất bại' 
+      return {
+        success: false,
+        message: 'Lỗi kết nối server'
       };
     }
   };
